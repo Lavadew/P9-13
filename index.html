@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Phish Guardian</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <header>
+    <h1>🛡️Phish Guardian</h1>
+    <p class="muted">Paste your email → we’ll classify it, highlight risks, and show a risk meter (1–10).</p>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <form method="POST">
+        <label for="email_text">Email (raw text or pasted content)</label>
+        <textarea id="email_text" name="email_text" placeholder="Paste the full email content">{{ email_text or "" }}</textarea>
+
+        <!-- NEW: sender domain input (optional) -->
+        <label for="sender_domain" style="margin-top:12px;">Sender domain (optional)</label>
+        <input id="sender_domain" name="sender_domain" type="text" placeholder="e.g. paypal.com"
+               value="{{ request.form.get('sender_domain','') }}"
+               style="width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);margin:6px 0;"/>
+
+        <div class="row">
+          <button class="primary" type="submit">Analyze</button>
+          <button id="btnClear" type="button">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    {% if result %}
+    <section class="card">
+      <h2 style="margin-top:0;">Overall Risk</h2>
+      <div class="result-block {% if result.final_risk_label == 'High' %}danger{% elif result.final_risk_label == 'Medium' %}warn{% else %}safe{% endif %}">
+        <h3>{{ result.final_risk_label }} (score: <span id="riskNum">{{ '%.1f'|format(result.final_risk|default(0)) }}</span>/10)</h3>
+        <p class="muted">Composite from rules, phishing ML, and spam ML.</p>
+      </div>
+
+      <!-- Progress / Risk bar (original UI style) -->
+      <div class="meter" aria-label="Risk meter" title="0 = safe, 10 = risky">
+        <div id="meterBar" class="meter-bar {% if result.final_risk_label == 'High' %}danger{% elif result.final_risk_label == 'Medium' %}warn{% else %}safe{% endif %}" style="width: 0%;"></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>Spam (ML)</h3>
+        <p><span class="badge {{ 'danger' if result.spam_label.startswith('Spam') else 'safe' }}">{{ result.spam_label }}</span>
+           &nbsp;{{ result.spam_conf }}%</p>
+      </div>
+
+      <div class="card">
+        <h3>Phishing (ML)</h3>
+        <p><span class="badge {{ 'danger' if result.phishing_label.startswith('Phishing') else 'safe' }}">{{ result.phishing_label }}</span>
+           &nbsp;{% if result.phishing_conf is not none %}{{ result.phishing_conf }}%{% else %}n/a{% endif %}</p>
+        {% if result.whitelist_note %}<p class="note safe">{{ result.whitelist_note }}</p>{% endif %}
+        {% if result.brand_note %}<p class="note danger">Brand check: {{ result.brand_note }}</p>{% endif %}
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Email (highlights)</h3>
+      <div id="preview" class="preview"></div>
+      <p class="muted" style="margin-top:6px;">Legend:
+        <span class="badge danger">red</span> suspicious,
+        <span class="badge warn">amber</span> warning,
+        <span class="badge safe">green</span> trusted link.
+      </p>
+      <div class="notes" style="margin-top:10px;">
+        <p><strong>Sender domain used:</strong>
+          {% if result.sender_domain %}
+            {{ result.sender_domain }}
+          {% else %}
+            <span class="muted">Not provided / not found</span>
+          {% endif %}
+        </p>
+      </div>
+    </section>
+    {% endif %}
+  </main>
+
+  <!-- Backend injects whitelist as JSON -->
+  <script id="trusted-json" type="application/json">{{ TRUSTED_DOMAINS|tojson }}</script>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
