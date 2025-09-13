@@ -1,0 +1,8 @@
+flask
+scikit-learn
+joblib
+python-Levenshtein
+pandas
+pytest
+beautifulsoup4
+requests
