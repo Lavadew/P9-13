@@ -8,3 +8,4 @@ https://www.kaggle.com/datasets/beatoa/spamassassin-public-corpus
 https://www.kaggle.com/datasets/zaczinho/phishing-mail-dataset-subject-body
 
 Quick start guide:
+pip install -r requirements.txt
