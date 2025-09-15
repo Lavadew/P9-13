@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Phish Guardian</title></head>
+<body>
+  <h1>Phish Guardian (BETA)</h1>
+  <form method="post">
+    <textarea name="email_text" rows="12" cols="80">paste email here</textarea><br/>
+    <button type="submit">Analyze</button>
+  </form>
+
+  {% if result %}
+  <h2>Results</h2>
+  <pre>{{ result | tojson(indent=2) }}</pre>
+  {% endif %}
+</body>
+</html>
