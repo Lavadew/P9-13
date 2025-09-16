@@ -11,6 +11,7 @@ from sklearn.metrics import classification_report
 from heuristics import URLFeatures
 from models import save_model
 
+
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--csv", type=str, help="path to CSV file (columns: text,label)")
