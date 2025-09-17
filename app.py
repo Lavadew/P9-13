@@ -3,6 +3,7 @@ from scoring import phishing_score
 from models import load_model
 from brand_rules import sender_brand_check
 from trusted import load_trusted
+import pandas as pd
 
 app = Flask(__name__)
 # Load model once
@@ -31,12 +32,17 @@ def index():
 
 @app.route("/api/score", methods=["POST"])
 def api_score():
-    data = request.get_json() or {}
+    data = request.get_json(force=True) or {}
     text = data.get("text","")
     rules = phishing_score(text)
+
     ml = None
-    if pipe:
-        ml = int(pipe.predict([text])[0])
+    if pipe is not None:
+        # Build a DataFrame with the same columns used during training
+        X = pd.DataFrame({"text": [text], "raw": [text]})
+        pred = pipe.predict(X)           # returns array like [0] or [1]
+        ml = int(pred[0])
+
     return jsonify({"rules": rules, "ml": ml})
 
 if __name__ == "__main__":

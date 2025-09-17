@@ -55,7 +55,7 @@ def main():
     pipe = Pipeline([("features", ct), ("clf", LogisticRegression(max_iter=1000, class_weight="balanced"))])
     pipe.fit(Xtr, ytr)
     yp = pipe.predict(Xte)
-    print(classification_report(yte, yp))
+    print(classification_report(yte, yp, zero_division=0))
     save_model(pipe)
     print("[OK] Saved model to phishing_pipeline.joblib")
 
